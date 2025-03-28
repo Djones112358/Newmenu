@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Menu Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .scrollable-container {
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .scrollable-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 3px;
+        }
+
+        .scrollable-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .dark .scrollable-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .dark .scrollable-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        .menu-description p {
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-description p:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen transition-colors duration-200">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Login Section -->
+        <div id="loginSection" class="flex flex-col items-center justify-center min-h-[50vh]">
+            <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+                <h1 class="text-2xl font-bold text-center mb-6 text-primary dark:text-primary">Private Menu Manager</h1>
+                <div class="mb-4">
+                    <label for="password" class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="password" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700" placeholder="Enter password">
+                </div>
+                <button id="loginBtn" class="w-full bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                    Enter
+                </button>
+                <p id="loginError" class="mt-2 text-red-500 text-sm hidden">
+                    Incorrect password. Please try again.
+                </p>
+            </div>
+        </div>
+
+        <!-- Menu Management Section -->
+        <div id="menuSection" class="hidden">
+            <!-- Top bar with mode indicator and logout -->
+            <div class="flex justify-between items-center mb-6">
+                <div id="viewModeContainer" class="flex items-center">
+                    <!-- View mode indicator will be inserted here -->
+                </div>
+                <button id="logoutBtn" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary">
+                    Logout
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" id="editorSection">
+                <!-- Menu Editor -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4">Edit Menu</h2>
+
+                    <div class="mb-4">
+                        <label for="menuItemName" class="block text-sm font-medium mb-2">Item Name</label>
+                        <input type="text" id="menuItemName" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700" placeholder="e.g. Cheeseburger">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="mb-4">
+                            <label for="menuItemPrice" class="block text-sm font-medium mb-2">Standard Price</label>
+                            <input type="text" id="menuItemPrice" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700" placeholder="e.g. $10.99">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Shown to regular viewers
+                            </p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="menuItemVipPrice" class="block text-sm font-medium mb-2">VIP Price</label>
+                            <input type="text" id="menuItemVipPrice" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700" placeholder="e.g. $8.99">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Shown to VIP users only
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="menuItemDescription" class="block text-sm font-medium mb-2">Description</label>
+                        <textarea id="menuItemDescription" rows="3" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700" placeholder="Describe your menu item..."></textarea>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Supports markdown formatting
+                        </p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="menuItemCategory" class="block text-sm font-medium mb-2">Category</label>
+                        <input type="text" id="menuItemCategory" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700" placeholder="e.g. Main Course">
+                    </div>
+
+                    <!-- Image Upload Section -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Item Image</label>
+                        <div class="flex items-center space-x-4">
+                            <div id="imagePreviewContainer" class="hidden border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden w-20 h-20 flex-shrink-0">
+                                <img id="imagePreview" class="w-full h-full object-cover" src="" alt="Item preview">
+                            </div>
+                            <div class="flex-1">
+                                <label for="menuItemImage" class="cursor-pointer bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Choose Image
+                                </label>
+                                <input type="file" id="menuItemImage" class="hidden" accept="image/*">
+                                <button id="removeImageBtn" class="mt-2 text-sm text-red-500 hover:text-red-700 hidden">Remove Image</button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Recommended size: 500x500px or smaller
+                        </p>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <button id="addMenuItem" class="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded-md transition-colors">Add Item</button>
+                        <button id="updateMenuItem" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors hidden">Update Item</button>
+                        <button id="cancelEdit" class="bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-2 px-4 rounded-md transition-colors hidden">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Menu Items List -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">Menu Items</h2>
+                        <button id="organizeCategoriesBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-1 rounded">Organize Menu</button>
+                    </div>
+                    <div id="menuItemsList" class="divide-y divide-gray-200 dark:divide-gray-700 max-h-96 overflow-y-auto scrollable-container">
+                        <!-- Menu items will be inserted here -->
+                        <p id="noItemsMessage" class="py-3 text-gray-500 dark:text-gray-400 text-sm">
+                            No menu items added yet.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export/Import Section -->
+            <div id="exportImportSection" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4">Export/Import Menu</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    Due to browser limitations, your menu isn't automatically saved. Use these options to backup your data.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <button id="exportMenuBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                            Export Menu Data
+                        </button>
+                    </div>
+                    <div>
+                        <button id="importMenuBtn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                            Import Menu Data
+                        </button>
+                    </div>
+                </div>
+                <div id="exportArea" class="mt-4 hidden">
+                    <p class="text-sm mb-2">
+                        Copy this data to save your menu:
+                    </p>
+                    <textarea id="exportOutput" rows="4" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700" readonly></textarea>
+                </div>
+                <div id="importArea" class="mt-4 hidden">
+                    <p class="text-sm mb-2">
+                        Paste your saved menu data here:
+                    </p>
+                    <textarea id="importInput" rows="4" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700"></textarea>
+                    <button id="processImportBtn" class="mt-2 bg-green-600 hover:bg-green-700 text-white font-medium py-1 px-3 rounded-md transition-colors text-sm">
+                        Process Import
+                    </button>
+                </div>
+            </div>
+
+            <!-- Menu Preview Section -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <input type="text" id="menuTitle" class="px-2 py-1 text-lg font-bold border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700" placeholder="My Restaurant Menu" value="My Restaurant Menu">
+                </div>
+                <div id="menuPreview" class="mt-4 max-h-[60vh] overflow-y-auto scrollable-container pr-2">
+                    <!-- Menu preview will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- All Modals -->
+        <div id="modalContainer" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <!-- Category Organization Modal -->
+            <div id="orgModal" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 w-full max-w-2xl mx-4 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Organize Menu</h3>
+                    <button class="modal-close text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <div id="categoryOrgList" class="mb-4 max-h-[60vh] overflow-y-auto scrollable-container">
+                    <!-- Categories will be listed here -->
+                </div>
+                <div class="flex justify-end">
+                    <button id="saveCategoryOrderBtn" class="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded-md transition-colors">Save Order</button>
+                </div>
+            </div>
+
+            <!-- Import Confirmation Modal -->
+            <div id="importConfirmModal" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-md w-full mx-4 hidden">
+                <h3 class="text-lg font-semibold mb-2">Confirm Import</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">
+                    This will replace your current menu data. Continue?
+                </p>
+                <div class="flex justify-end space-x-2">
+                    <button class="modal-close px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-400 dark:hover:bg-gray-700">Cancel</button>
+                    <button id="confirmImportBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Confirm</button>
+                </div>
+            </div>
+
+            <!-- Password Management Modal -->
+            <div id="passwordModal" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-md w-full mx-4 hidden">
+                <h3 class="text-lg font-semibold mb-2">Manage Passwords</h3>
+                <div class="mb-4">
+                    <label for="adminPassword" class="block text-sm font-medium mb-2">Admin Password (Full Access)</label>
+                    <input type="password" id="adminPassword" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                </div>
+                <div class="mb-4">
+                    <label for="vipPassword" class="block text-sm font-medium mb-2">VIP Password (Special Pricing)</label>
+                    <input type="password" id="vipPassword" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                </div>
+                <div class="mb-4">
+                    <label for="viewPassword" class="block text-sm font-medium mb-2">View-Only Password</label>
+                    <input type="password" id="viewPassword" class="w-full px-3 py-2 text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button class="modal-close px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-400 dark:hover:bg-gray-700">Cancel</button>
+                    <button id="savePasswordBtn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-opacity-90">Save Changes</button>
+                </div>
+            </div>
+
+            <!-- Image Preview Modal -->
+            <div id="imagePreviewModal" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-3xl w-full mx-4 hidden">
+                <h3 class="text-lg font-semibold mb-2">Image Preview</h3>
+                <div class="flex justify-center items-center my-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+                    <img id="modalImagePreview" class="max-w-full max-h-[70vh] object-contain" src="" alt="Preview">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button class="modal-close px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-400 dark:hover:bg-gray-700">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dark mode based on system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            document.documentElement.classList.toggle('dark', event.matches);
+        });
+
+        // Constants
+        const ACCESS_MODE = {
+            ADMIN: 'admin',
+            VIP: 'vip',
+            VIEW: 'view'
+        };
+
+        // App state
+        const app = {
+            adminPassword: "menu123",
+            vipPassword: "vip789",
+            viewPassword: "view456",
+            accessMode: null,
+            menuItems: [],
+            categoryOrder: [],
+            currentEditingIndex: -1,
+            menuTitle: "My Restaurant Menu",
+            currentImage: null,
+
+            // Cache DOM elements for better performance
+            elements: {},
+
+            // Initialize the application
+            init() {
+                this.cacheElements();
+                this.bindEvents();
+            },
+
+            // Cache DOM elements
+            cacheElements() {
+                // Sections
+                this.elements.loginSection = document.getElementById('loginSection');
+                this.elements.menuSection = document.getElementById('menuSection');
+                this.elements.editorSection = document.getElementById('editorSection');
+                this.elements.exportImportSection = document.getElementById('exportImportSection');
+
+                // Login elements
+                this.elements.password = document.getElementById('password');
+                this.elements.loginBtn = document.getElementById('loginBtn');
+                this.elements.loginError = document.getElementById('loginError');
+                this.elements.logoutBtn = document.getElementById('logoutBtn');
+                this.elements.viewModeContainer = document.getElementById('viewModeContainer');
+
+                // Item editor elements
+                this.elements.menuItemName = document.getElementById('menuItemName');
+                this.elements.menuItemPrice = document.getElementById('menuItemPrice');
+                this.elements.menuItemVipPrice = document.getElementById('menuItemVipPrice');
+                this.elements.menuItemDescription = document.getElementById('menuItemDescription');
+                this.elements.menuItemCategory = document.getElementById('menuItemCategory');
+                this.elements.menuItemImage = document.getElementById('menuItemImage');
+                this.elements.imagePreview = document.getElementById('imagePreview');
+                this.elements.imagePreviewContainer = document.getElementById('imagePreviewContainer');
+                this.elements.removeImageBtn = document.getElementById('removeImageBtn');
+                this.elements.addMenuItem = document.getElementById('addMenuItem');
+                this.elements.updateMenuItem = document.getElementById('updateMenuItem');
+                this.elements.cancelEdit = document.getElementById('cancelEdit');
+
+                // Menu list elements
+                this.elements.menuItemsList = document.getElementById('menuItemsList');
+                this.elements.noItemsMessage = document.getElementById('noItemsMessage');
+                this.elements.organizeCategoriesBtn = document.getElementById('organizeCategoriesBtn');
+                this.elements.categoryOrgList = document.getElementById('categoryOrgList');
+                this.elements.saveCategoryOrderBtn = document.getElementById('saveCategoryOrderBtn');
+
+                // Preview elements
+                this.elements.menuTitle = document.getElementById('menuTitle');
+                this.elements.menuPreview = document.getElementById('menuPreview');
+
+                // Export/Import elements
+                this.elements.exportMenuBtn = document.getElementById('exportMenuBtn');
+                this.elements.importMenuBtn = document.getElementById('importMenuBtn');
+                this.elements.exportArea = document.getElementById('exportArea');
+                this.elements.exportOutput = document.getElementById('exportOutput');
+                this.elements.importArea = document.getElementById('importArea');
+                this.elements.importInput = document.getElementById('importInput');
+                this.elements.processImportBtn = document.getElementById('processImportBtn');
+                this.elements.confirmImportBtn = document.getElementById('confirmImportBtn');
+
+                // Modal elements
+                this.elements.modalContainer = document.getElementById('modalContainer');
+                this.elements.orgModal = document.getElementById('orgModal');
+                this.elements.importConfirmModal = document.getElementById('importConfirmModal');
+                this.elements.passwordModal = document.getElementById('passwordModal');
+                this.elements.imagePreviewModal = document.getElementById('imagePreviewModal');
+                this.elements.modalImagePreview = document.getElementById('modalImagePreview');
+                this.elements.savePasswordBtn = document.getElementById('savePasswordBtn');
+                this.elements.adminPasswordInput = document.getElementById('adminPassword');
+                this.elements.vipPasswordInput = document.getElementById('vipPassword');
+                this.elements.viewPasswordInput = document.getElementById('viewPassword');
+            },
+
+            // Bind event listeners
+            bindEvents() {
+                // Authentication
+                this.elements.loginBtn.addEventListener('click', () => this.login());
+                this.elements.password.addEventListener('keyup', e => {
+                    if (e.key === 'Enter') this.login();
+                });
+                this.elements.logoutBtn.addEventListener('click',
+                    () => this.logout());
+
+                // Menu items
+                this.elements.addMenuItem.addEventListener('click',
+                    () => this.addMenuItem());
+                this.elements.updateMenuItem.addEventListener('click',
+                    () => this.updateMenuItem());
+                this.elements.cancelEdit.addEventListener('click',
+                    () => this.cancelEdit());
+
+                // Category organization
+                this.elements.organizeCategoriesBtn.addEventListener('click',
+                    () => this.showModal('orgModal'));
+                this.elements.saveCategoryOrderBtn.addEventListener('click',
+                    () => this.saveCategoryOrder());
+
+                // Image handling
+                this.elements.menuItemImage.addEventListener('change',
+                    e => this.handleImageUpload(e));
+                this.elements.removeImageBtn.addEventListener('click',
+                    () => this.removeImage());
+
+                // Menu title
+                this.elements.menuTitle.addEventListener('input',
+                    () => this.updateMenuTitle());
+
+                // Export/Import
+                this.elements.exportMenuBtn.addEventListener('click',
+                    () => this.exportMenu());
+                this.elements.importMenuBtn.addEventListener('click',
+                    () => this.showImportMenu());
+                this.elements.processImportBtn.addEventListener('click',
+                    () => this.processImport());
+                this.elements.confirmImportBtn.addEventListener('click',
+                    () => this.confirmImport());
+
+                // Password management
+                this.elements.savePasswordBtn.addEventListener('click',
+                    () => this.savePasswords());
+
+                // Modal handling - close buttons
+                document.querySelectorAll('.modal-close').forEach(btn => {
+                    btn.addEventListener('click', () => this.hideAllModals());
+                });
+
+                // Add password management button
+                this.addPasswordManagementButton();
+            },
+
+            // Authentication
+            login() {
+                const enteredPassword = this.elements.password.value;
+                let accessGranted = true;
+
+                if (enteredPassword === this.adminPassword) {
+                    this.accessMode = ACCESS_MODE.ADMIN;
+                } else if (enteredPassword === this.vipPassword) {
+                    this.accessMode = ACCESS_MODE.VIP;
+                } else if (enteredPassword === this.viewPassword) {
+                    this.accessMode = ACCESS_MODE.VIEW;
+                } else {
+                    accessGranted = false;
+                    this.elements.loginError.classList.remove('hidden');
+                }
+
+                if (accessGranted) {
+                    this.elements.loginSection.classList.add('hidden');
+                    this.elements.menuSection.classList.remove('hidden');
+                    this.elements.loginError.classList.add('hidden');
+                    this.setAccessMode();
+                    this.updateCategoryOrder();
+                    this.renderMenuItems();
+                    this.updateMenuTitle();
+                    this.renderMenuPreview();
+                }
+            },
+
+            logout() {
+                this.elements.loginSection.classList.remove('hidden');
+                this.elements.menuSection.classList.add('hidden');
+                this.elements.password.value = '';
+                this.accessMode = null;
+            },
+
+            // Set UI based on access mode
+            setAccessMode() {
+                this.elements.viewModeContainer.innerHTML = '';
+                const indicator = document.createElement('span');
+
+                if (this.accessMode === ACCESS_MODE.ADMIN) {
+                    this.elements.editorSection.classList.remove('hidden');
+                    this.elements.exportImportSection.classList.remove('hidden');
+                    this.elements.organizeCategoriesBtn.classList.remove('hidden');
+                    this.elements.menuTitle.disabled = false;
+
+                    indicator.className = 'px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 text-sm font-medium rounded-full';
+                    indicator.textContent = 'Admin Mode';
+                } else if (this.accessMode === ACCESS_MODE.VIP) {
+                    this.elements.editorSection.classList.add('hidden');
+                    this.elements.exportImportSection.classList.add('hidden');
+                    this.elements.menuTitle.disabled = true;
+
+                    indicator.className = 'px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 text-sm font-medium rounded-full';
+                    indicator.textContent = 'VIP Mode';
+                } else if (this.accessMode === ACCESS_MODE.VIEW) {
+                    this.elements.editorSection.classList.add('hidden');
+                    this.elements.exportImportSection.classList.add('hidden');
+                    this.elements.menuTitle.disabled = true;
+
+                    indicator.className = 'px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 text-sm font-medium rounded-full';
+                    indicator.textContent = 'View Only Mode';
+                }
+
+                this.elements.viewModeContainer.appendChild(indicator);
+            },
+
+            // Modal handling
+            showModal(modalId) {
+                if (modalId === 'orgModal' && this.accessMode !== ACCESS_MODE.ADMIN) return;
+
+                // Special case handlers
+                if (modalId === 'orgModal') {
+                    this.updateCategoryOrder();
+                    this.renderCategoryOrganizer();
+                } else if (modalId === 'passwordModal') {
+                    this.elements.adminPasswordInput.value = this.adminPassword;
+                    this.elements.vipPasswordInput.value = this.vipPassword;
+                    this.elements.viewPasswordInput.value = this.viewPassword;
+                }
+
+                this.hideAllModals();
+                this.elements.modalContainer.classList.remove('hidden');
+                this.elements[modalId].classList.remove('hidden');
+            },
+
+            showImagePreview(imageSrc) {
+                this.elements.modalImagePreview.src = imageSrc;
+                this.showModal('imagePreviewModal');
+            },
+
+            hideAllModals() {
+                this.elements.modalContainer.classList.add('hidden');
+                this.elements.orgModal.classList.add('hidden');
+                this.elements.importConfirmModal.classList.add('hidden');
+                this.elements.passwordModal.classList.add('hidden');
+                this.elements.imagePreviewModal.classList.add('hidden');
+            },
+
+            // Password management
+            savePasswords() {
+                const newAdminPassword = this.elements.adminPasswordInput.value.trim();
+                const newVipPassword = this.elements.vipPasswordInput.value.trim();
+                const newViewPassword = this.elements.viewPasswordInput.value.trim();
+
+                if (!newAdminPassword || !newVipPassword || !newViewPassword) {
+                    alert('All passwords must be set');
+                    return;
+                }
+
+                // Check for duplicate passwords
+                if (newAdminPassword === newVipPassword ||
+                    newAdminPassword === newViewPassword ||
+                    newVipPassword === newViewPassword) {
+                    alert('All passwords must be different from each other');
+                    return;
+                }
+
+                this.adminPassword = newAdminPassword;
+                this.vipPassword = newVipPassword;
+                this.viewPassword = newViewPassword;
+
+                this.hideAllModals();
+                alert('Passwords updated successfully!');
+            },
+
+            // Add password management button
+            addPasswordManagementButton() {
+                const managePasswordsBtn = document.createElement('button');
+                managePasswordsBtn.id = 'managePasswordsBtn';
+                managePasswordsBtn.className = 'mt-4 w-full bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-2 px-4 rounded-md transition-colors';
+                managePasswordsBtn.textContent = 'Manage Passwords';
+                managePasswordsBtn.addEventListener('click', () => this.showModal('passwordModal'));
+
+                this.elements.exportImportSection.appendChild(managePasswordsBtn);
+            },
+
+            // Image handling
+            handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // Check file size - limit to 1MB
+                if (file.size > 1024 * 1024) {
+                    alert('Image size must be less than 1MB. Please choose a smaller image or resize it.');
+                    this.elements.menuItemImage.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    this.currentImage = e.target.result;
+                    this.elements.imagePreview.src = e.target.result;
+                    this.elements.imagePreviewContainer.classList.remove('hidden');
+                    this.elements.removeImageBtn.classList.remove('hidden');
+                };
+
+                reader.readAsDataURL(file);
+            },
+
+            removeImage() {
+                this.currentImage = null;
+                this.elements.imagePreview.src = '';
+                this.elements.imagePreviewContainer.classList.add('hidden');
+                this.elements.removeImageBtn.classList.add('hidden');
+                this.elements.menuItemImage.value = '';
+            },
+
+            // Menu category organization
+            updateCategoryOrder() {
+                // Get all unique categories
+                const categories = new Set();
+                this.menuItems.forEach(item => {
+                    categories.add(item.category || 'Uncategorized');
+                });
+
+                // Add any new categories that aren't in the order yet
+                const currentCategories = Array.from(categories);
+                currentCategories.forEach(category => {
+                    if (!this.categoryOrder.includes(category)) {
+                        this.categoryOrder.push(category);
+                    }
+                });
+
+                // Remove any categories that no longer exist
+                this.categoryOrder = this.categoryOrder.filter(category =>
+                    currentCategories.includes(category)
+                );
+
+                // If all categories were removed, add any current ones
+                if (this.categoryOrder.length === 0) {
+                    this.categoryOrder = currentCategories;
+                }
+            },
+
+            renderCategoryOrganizer() {
+                this.elements.categoryOrgList.innerHTML = '';
+
+                if (this.categoryOrder.length === 0) {
+                    this.elements.categoryOrgList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">No categories to organize.</p>';
+                    return;
+                }
+
+                // Create a list of categories with their items
+                this.categoryOrder.forEach((category, categoryIndex) => {
+                    const categoryItems = this.menuItems.filter(item =>
+                        (item.category || 'Uncategorized') === category
+                    );
+
+                    // Create category container
+                    const categoryContainer = document.createElement('div');
+                    categoryContainer.className = 'mb-4 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden';
+                    categoryContainer.dataset.category = category;
+
+                    // Create category header
+                    const categoryHeader = document.createElement('div');
+                    categoryHeader.className = 'bg-gray-100 dark:bg-gray-700 p-3 flex items-center justify-between';
+
+                    // Add category name and controls
+                    categoryHeader.innerHTML = `
+                    <div class="flex items-center">
+                    <h4 class="font-medium">${category}</h4>
+                    </div>
+                    <div class="flex space-x-1">
+                    ${categoryIndex > 0 ? `
+                    <button class="move-up-btn p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" data-category="${category}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                    </svg>
+                    </button>`: ''}
+                    ${categoryIndex < this.categoryOrder.length - 1 ? `
+                    <button class="move-down-btn p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" data-category="${category}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    </button>`: ''}
+                    </div>
+                    `;
+
+                    categoryContainer.appendChild(categoryHeader);
+
+                    // Create items list for this category
+                    const itemsList = document.createElement('div');
+                    itemsList.className = 'p-3';
+
+                    if (categoryItems.length === 0) {
+                        itemsList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-sm py-2">No items in this category</p>';
+                    } else {
+                        // Create sortable items list
+                        categoryItems.forEach((item, itemIndex) => {
+                            const itemElement = document.createElement('div');
+                            itemElement.className = 'flex items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-0';
+                            itemElement.dataset.itemIndex = this.menuItems.indexOf(item);
+
+                            itemElement.innerHTML = `
+                            <div class="flex-1">
+                            ${item.name}
+                            <span class="text-sm text-gray-500 dark:text-gray-400 ml-2">${item.price || ''}</span>
+                            </div>
+                            <div class="flex space-x-1">
+                            ${itemIndex > 0 ? `
+                            <button class="move-item-up-btn p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" data-index="${this.menuItems.indexOf(item)}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                            </svg>
+                            </button>`: ''}
+                            ${itemIndex < categoryItems.length - 1 ? `
+                            <button class="move-item-down-btn p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200" data-index="${this.menuItems.indexOf(item)}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                            </button>`: ''}
+                            </div>
+                            `;
+
+                            itemsList.appendChild(itemElement);
+                        });
+                    }
+
+                    categoryContainer.appendChild(itemsList);
+                    this.elements.categoryOrgList.appendChild(categoryContainer);
+                });
+
+                // Add event listeners for category movement
+                this.elements.categoryOrgList.querySelectorAll('.move-up-btn[data-category]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const category = btn.dataset.category;
+                        const index = this.categoryOrder.indexOf(category);
+                        if (index > 0) {
+                            // Swap with the category above
+                            [this.categoryOrder[index-1],
+                                this.categoryOrder[index]] =
+                            [this.categoryOrder[index],
+                                this.categoryOrder[index-1]];
+                            this.renderCategoryOrganizer();
+                        }
+                    });
+                });
+
+                this.elements.categoryOrgList.querySelectorAll('.move-down-btn[data-category]').forEach(btn => {
+                    btn.addEventListener('click',
+                        () => {
+                            const category = btn.dataset.category;
+                            const index = this.categoryOrder.indexOf(category);
+                            if (index < this.categoryOrder.length - 1) {
+                                // Swap with the category below
+                                [this.categoryOrder[index],
+                                    this.categoryOrder[index+1]] =
+                                [this.categoryOrder[index+1],
+                                    this.categoryOrder[index]];
+                                this.renderCategoryOrganizer();
+                            }
+                        });
+                });
+
+                // Add event listeners for item movement within a category
+                this.elements.categoryOrgList.querySelectorAll('.move-item-up-btn').forEach(btn => {
+                    btn.addEventListener('click',
+                        () => {
+                            const itemIndex = parseInt(btn.dataset.index);
+                            const item = this.menuItems[itemIndex];
+                            const category = item.category || 'Uncategorized';
+
+                            // Get all items in this category
+                            const categoryItems = this.menuItems.filter(i =>
+                                (i.category || 'Uncategorized') === category
+                            );
+
+                            // Find the index within the category items
+                            const categoryItemIndex = categoryItems.indexOf(item);
+
+                            if (categoryItemIndex > 0) {
+                                // Get the item above in the same category
+                                const itemAbove = categoryItems[categoryItemIndex - 1];
+                                const itemAboveIndex = this.menuItems.indexOf(itemAbove);
+
+                                // Swap positions in the main array
+                                [this.menuItems[itemIndex],
+                                    this.menuItems[itemAboveIndex]] =
+                                [this.menuItems[itemAboveIndex],
+                                    this.menuItems[itemIndex]];
+
+                                this.renderCategoryOrganizer();
+                            }
+                        });
+                });
+
+                this.elements.categoryOrgList.querySelectorAll('.move-item-down-btn').forEach(btn => {
+                    btn.addEventListener('click',
+                        () => {
+                            const itemIndex = parseInt(btn.dataset.index);
+                            const item = this.menuItems[itemIndex];
+                            const category = item.category || 'Uncategorized';
+
+                            // Get all items in this category
+                            const categoryItems = this.menuItems.filter(i =>
+                                (i.category || 'Uncategorized') === category
+                            );
+
+                            // Find the index within the category items
+                            const categoryItemIndex = categoryItems.indexOf(item);
+
+                            if (categoryItemIndex < categoryItems.length - 1) {
+                                // Get the item below in the same category
+                                const itemBelow = categoryItems[categoryItemIndex + 1];
+                                const itemBelowIndex = this.menuItems.indexOf(itemBelow);
+
+                                // Swap positions in the main array
+                                [this.menuItems[itemIndex],
+                                    this.menuItems[itemBelowIndex]] =
+                                [this.menuItems[itemBelowIndex],
+                                    this.menuItems[itemIndex]];
+
+                                this.renderCategoryOrganizer();
+                            }
+                        });
+                });
+            },
+
+            saveCategoryOrder() {
+                this.renderMenuItems();
+                this.renderMenuPreview();
+                this.hideAllModals();
+            },
+
+            // Menu item management
+            addMenuItem() {
+                const name = this.elements.menuItemName.value.trim();
+                const price = this.elements.menuItemPrice.value.trim();
+                const vipPrice = this.elements.menuItemVipPrice.value.trim();
+                const description = this.elements.menuItemDescription.value.trim();
+                const category = this.elements.menuItemCategory.value.trim();
+
+                if (!name) {
+                    alert('Please enter a name for the menu item');
+                    return;
+                }
+
+                this.menuItems.push({
+                    name,
+                    price,
+                    vipPrice,
+                    description,
+                    category: category || 'Uncategorized',
+                    image: this.currentImage
+                });
+
+                this.clearMenuForm();
+                this.updateCategoryOrder();
+                this.renderMenuItems();
+                this.renderMenuPreview();
+            },
+
+            editMenuItem(index) {
+                if (this.accessMode !== ACCESS_MODE.ADMIN) return;
+
+                const item = this.menuItems[index];
+                this.elements.menuItemName.value = item.name;
+                this.elements.menuItemPrice.value = item.price || '';
+                this.elements.menuItemVipPrice.value = item.vipPrice || '';
+                this.elements.menuItemDescription.value = item.description;
+                this.elements.menuItemCategory.value = item.category;
+
+                // Handle image
+                if (item.image) {
+                    this.elements.imagePreview.src = item.image;
+                    this.elements.imagePreviewContainer.classList.remove('hidden');
+                    this.elements.removeImageBtn.classList.remove('hidden');
+                    this.currentImage = item.image;
+                } else {
+                    this.elements.imagePreview.src = '';
+                    this.elements.imagePreviewContainer.classList.add('hidden');
+                    this.elements.removeImageBtn.classList.add('hidden');
+                    this.currentImage = null;
+                }
+
+                this.currentEditingIndex = index;
+
+                this.elements.addMenuItem.classList.add('hidden');
+                this.elements.updateMenuItem.classList.remove('hidden');
+                this.elements.cancelEdit.classList.remove('hidden');
+
+                // Scroll to form
+                this.elements.menuItemName.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            },
+
+            updateMenuItem() {
+                if (this.currentEditingIndex < 0) return;
+
+                const name = this.elements.menuItemName.value.trim();
+                const price = this.elements.menuItemPrice.value.trim();
+                const vipPrice = this.elements.menuItemVipPrice.value.trim();
+                const description = this.elements.menuItemDescription.value.trim();
+                const category = this.elements.menuItemCategory.value.trim();
+
+                if (!name) {
+                    alert('Please enter a name for the menu item');
+                    return;
+                }
+
+                this.menuItems[this.currentEditingIndex] = {
+                    name,
+                    price,
+                    vipPrice,
+                    description,
+                    category: category || 'Uncategorized',
+                    image: this.currentImage
+                };
+
+                this.clearMenuForm();
+                this.updateCategoryOrder();
+                this.renderMenuItems();
+                this.renderMenuPreview();
+
+                // Reset editing state
+                this.currentEditingIndex = -1;
+                this.elements.addMenuItem.classList.remove('hidden');
+                this.elements.updateMenuItem.classList.add('hidden');
+                this.elements.cancelEdit.classList.add('hidden');
+            },
+
+            deleteMenuItem(index) {
+                if (this.accessMode !== ACCESS_MODE.ADMIN) return;
+
+                if (confirm('Are you sure you want to delete this menu item?')) {
+                    this.menuItems.splice(index, 1);
+                    this.updateCategoryOrder();
+                    this.renderMenuItems();
+                    this.renderMenuPreview();
+
+                    // If deleting the item being edited, clear the form
+                    if (index === this.currentEditingIndex) {
+                        this.clearMenuForm();
+                        this.currentEditingIndex = -1;
+                        this.elements.addMenuItem.classList.remove('hidden');
+                        this.elements.updateMenuItem.classList.add('hidden');
+                        this.elements.cancelEdit.classList.add('hidden');
+                    }
+                }
+            },
+
+            cancelEdit() {
+                this.clearMenuForm();
+                this.currentEditingIndex = -1;
+                this.elements.addMenuItem.classList.remove('hidden');
+                this.elements.updateMenuItem.classList.add('hidden');
+                this.elements.cancelEdit.classList.add('hidden');
+            },
+
+            clearMenuForm() {
+                this.elements.menuItemName.value = '';
+                this.elements.menuItemPrice.value = '';
+                this.elements.menuItemVipPrice.value = '';
+                this.elements.menuItemDescription.value = '';
+                this.elements.menuItemCategory.value = '';
+                this.elements.menuItemImage.value = '';
+                this.elements.imagePreview.src = '';
+                this.elements.imagePreviewContainer.classList.add('hidden');
+                this.elements.removeImageBtn.classList.add('hidden');
+                this.currentImage = null;
+            },
+
+            // Get price based on access mode
+            getPriceForCurrentMode(item) {
+                if (this.accessMode === ACCESS_MODE.VIP && item.vipPrice) {
+                    return item.vipPrice;
+                }
+                return item.price;
+            },
+
+            // Render menu items to editor list
+            renderMenuItems() {
+                if (this.menuItems.length === 0) {
+                    this.elements.noItemsMessage.classList.remove('hidden');
+                    this.elements.menuItemsList.innerHTML = '';
+                    this.elements.menuItemsList.appendChild(this.elements.noItemsMessage);
+                    return;
+                }
+
+                this.elements.noItemsMessage.classList.add('hidden');
+
+                // Group items by category following the category order
+                const categorizedItems = this.getCategorizedItems();
+
+                // Clear current list
+                this.elements.menuItemsList.innerHTML = '';
+
+                // Add items by category
+                this.categoryOrder.forEach(category => {
+                    const items = categorizedItems[category];
+                    // Skip empty categories
+                    if (!items || items.length === 0) return;
+
+                    const categoryEl = document.createElement('div');
+                    categoryEl.className = 'py-2';
+                    categoryEl.innerHTML = `
+                    <h3 class="font-medium text-primary dark:text-primary">${category}</h3>
+                    `;
+                    this.elements.menuItemsList.appendChild(categoryEl);
+
+                    items.forEach((item) => {
+                        const index = this.menuItems.indexOf(item);
+
+                        const itemEl = document.createElement('div');
+                        itemEl.className = 'py-2 pl-3 flex justify-between items-start';
+
+                        // Only show edit and delete buttons in admin mode
+                        const actionButtons = (this.accessMode === ACCESS_MODE.ADMIN)
+                        ? `<div class="flex space-x-1">
+                        <button class="edit-btn p-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" data-index="${index}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        </button>
+                        <button class="delete-btn p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300" data-index="${index}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        </button>
+                        </div>`: '';
+
+                        const imageThumb = item.image
+                        ? `<div class="flex-shrink-0 mr-3">
+                        <div class="image-preview cursor-pointer w-12 h-12 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700" data-src="${item.image}">
+                        <img src="${item.image}" class="w-full h-full object-cover" alt="${item.name}">
+                        </div>
+                        </div>`: '';
+
+                        // In admin mode, show both prices
+                        const priceDisplay = this.accessMode === ACCESS_MODE.ADMIN
+                        ? `<div class="text-xs">
+                        ${item.price ? `<div>Reg: ${item.price}</div>`: ''}
+                        ${item.vipPrice ? `<div class="text-purple-600 dark:text-purple-400">VIP: ${item.vipPrice}</div>`: ''}
+                        </div>`: `<span class="ml-2 text-gray-600 dark:text-gray-400">${this.getPriceForCurrentMode(item)}</span>`;
+
+                        itemEl.innerHTML = `
+                        <div class="flex items-start">
+                        ${imageThumb}
+                        <div>
+                        <div class="flex items-center">
+                        <span class="font-medium">${item.name}</span>
+                        ${priceDisplay}
+                        </div>
+                        ${item.description ? `<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${item.description.substring(0, 60)}${item.description.length > 60 ? '...': ''}</p>`: ''}
+                        </div>
+                        </div>
+                        ${actionButtons}
+                        `;
+                        this.elements.menuItemsList.appendChild(itemEl);
+                    });
+                });
+
+                // Add event listeners for edit and delete buttons (only in admin mode)
+                if (this.accessMode === ACCESS_MODE.ADMIN) {
+                    this.elements.menuItemsList.querySelectorAll('.edit-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            this.editMenuItem(parseInt(btn.dataset.index));
+                        });
+                    });
+
+                    this.elements.menuItemsList.querySelectorAll('.delete-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            this.deleteMenuItem(parseInt(btn.dataset.index));
+                        });
+                    });
+                }
+
+                // Add event listeners for image previews
+                this.elements.menuItemsList.querySelectorAll('.image-preview').forEach(preview => {
+                    preview.addEventListener('click', () => {
+                        this.showImagePreview(preview.dataset.src);
+                    });
+                });
+            },
+
+            // Helper function to group items by category
+            getCategorizedItems() {
+                const items = {};
+
+                // Initialize all categories from the order
+                this.categoryOrder.forEach(category => {
+                    items[category] = [];
+                });
+
+                // Group items by category
+                this.menuItems.forEach(item => {
+                    const category = item.category || 'Uncategorized';
+                    if (!items[category]) {
+                        items[category] = [];
+                    }
+                    items[category].push(item);
+                });
+
+                return items;
+            },
+
+            // Render menu preview
+            renderMenuPreview() {
+                const categorizedItems = this.getCategorizedItems();
+
+                let previewHTML = `
+                <div class="max-w-4xl mx-auto">
+                <h1 class="text-3xl font-bold text-center mb-8">${this.menuTitle}</h1>
+                `;
+
+                if (Object.keys(categorizedItems).length === 0 || this.menuItems.length === 0) {
+                    previewHTML += `
+                    <p class="text-center text-gray-500 dark:text-gray-400 italic">
+                    Your menu is empty. Add items to see the preview.
+                    </p>
+                    `;
+                } else {
+                    // Add each category in order
+                    this.categoryOrder.forEach(category => {
+                        const items = categorizedItems[category];
+                        // Skip empty categories
+                        if (!items || items.length === 0) return;
+
+                        previewHTML += `
+                        <div class="mb-8">
+                        <h2 class="text-2xl font-semibold border-b-2 border-primary pb-2 mb-4">${category}</h2>
+                        <div class="grid grid-cols-1 gap-6">
+                        `;
+
+                        // Add items in the category
+                        items.forEach(item => {
+                            const imageDisplay = item.image
+                            ? `<div class="w-full sm:w-24 h-24 rounded-md overflow-hidden mb-3 sm:mb-0 sm:mr-4 cursor-pointer menu-image-preview" data-src="${item.image}">
+                            <img src="${item.image}" class="w-full h-full object-cover" alt="${item.name}">
+                            </div>`: '';
+
+                            const price = this.getPriceForCurrentMode(item);
+
+                            // Apply special styling for VIP prices
+                            const priceDisplay = this.accessMode === ACCESS_MODE.VIP && item.vipPrice
+                            ? `<div class="ml-4 text-xl font-medium text-purple-600 dark:text-purple-400">${item.vipPrice}</div>`: price ? `<div class="ml-4 text-xl font-medium text-primary">${price}</div>`: '';
+
+                            previewHTML += `
+                            <div class="flex flex-col sm:flex-row">
+                            ${imageDisplay}
+                            <div class="flex-1 flex justify-between">
+                            <div class="flex-1">
+                            <h3 class="text-lg font-medium">${item.name}</h3>
+                            ${item.description ? `<div class="mt-1 text-gray-600 dark:text-gray-400 menu-description">${marked.parse(item.description)}</div>`: ''}
+                            </div>
+                            ${priceDisplay}
+                            </div>
+                            </div>
+                            `;
+                        });
+
+                        previewHTML += `
+                        </div>
+                        </div>
+                        `;
+                    });
+                }
+
+                previewHTML += `</div>`;
+                this.elements.menuPreview.innerHTML = previewHTML;
+
+                // Add event listeners for menu image previews
+                this.elements.menuPreview.querySelectorAll('.menu-image-preview').forEach(preview => {
+                    preview.addEventListener('click', () => {
+                        this.showImagePreview(preview.dataset.src);
+                    });
+                });
+            },
+
+            updateMenuTitle() {
+                this.menuTitle = this.elements.menuTitle.value;
+                this.renderMenuPreview();
+            },
+
+            // Export/Import functions
+            exportMenu() {
+                const exportData = {
+                    menuItems: this.menuItems,
+                    menuTitle: this.menuTitle,
+                    categoryOrder: this.categoryOrder,
+                    adminPassword: this.adminPassword,
+                    vipPassword: this.vipPassword,
+                    viewPassword: this.viewPassword
+                };
+
+                this.elements.exportOutput.value = JSON.stringify(exportData);
+                this.elements.exportArea.classList.remove('hidden');
+                this.elements.importArea.classList.add('hidden');
+
+                // Select the text for easy copying
+                this.elements.exportOutput.select();
+            },
+
+            showImportMenu() {
+                this.elements.importArea.classList.remove('hidden');
+                this.elements.exportArea.classList.add('hidden');
+                this.elements.importInput.value = '';
+            },
+
+            processImport() {
+                try {
+                    const importText = this.elements.importInput.value.trim();
+                    if (!importText) {
+                        alert('Please paste the exported menu data');
+                        return;
+                    }
+
+                    // Try to parse the JSON to validate before showing confirmation
+                    JSON.parse(importText);
+
+                    // Show the confirmation dialog
+                    this.showModal('importConfirmModal');
+
+                } catch (error) {
+                    alert('Invalid import data. Please check the format and try again.');
+                }
+            },
+
+            confirmImport() {
+                try {
+                    const importData = JSON.parse(this.elements.importInput.value);
+
+                    if (importData.menuItems && Array.isArray(importData.menuItems)) {
+                        this.menuItems = importData.menuItems;
+                    }
+
+                    if (importData.menuTitle) {
+                        this.menuTitle = importData.menuTitle;
+                        this.elements.menuTitle.value = importData.menuTitle;
+                    }
+
+                    if (importData.categoryOrder && Array.isArray(importData.categoryOrder)) {
+                        this.categoryOrder = importData.categoryOrder;
+                    }
+
+                    // Handle password imports
+                    if (importData.adminPassword) {
+                        this.adminPassword = importData.adminPassword;
+                    }
+
+                    if (importData.vipPassword) {
+                        this.vipPassword = importData.vipPassword;
+                    }
+
+                    if (importData.viewPassword) {
+                        this.viewPassword = importData.viewPassword;
+                    }
+
+                    this.updateCategoryOrder();
+                    this.renderMenuItems();
+                    this.renderMenuPreview();
+
+                    this.elements.importArea.classList.add('hidden');
+                    this.hideAllModals();
+
+                    alert('Menu imported successfully!');
+                } catch (error) {
+                    alert('Error importing menu: ' + error.message);
+                }
+            }
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
